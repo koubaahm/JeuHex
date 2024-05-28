@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagame - Jouez</title>
+    <!-- Utilisation d'un CDN pour Tailwind CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@^3.0/dist/tailwind.min.css">
+    <!-- Votre fichier CSS personnalisé, chargé après Tailwind pour que vos styles aient la priorité -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div id="game-container">
+        <header class="game-header">
+            <h1>Hexagame</h1>
+            <div class="player-info">
+                <p id="current-player">Joueur actuel : Joueur 1</p>
+                <p id="winner-message"></p>
+            </div>
+        </header>
+        <main class="game-main">
+            <div id="hex-game-board"></div>
+            <button id="reset-button" class="game-button">Réinitialiser le jeu</button>
+        </main>
+        <aside class="game-aside">
+            <section class="game-instructions">
+                <h2>Instructions</h2>
+                <p>Connectez vos côtés en couleurs avant votre adversaire.</p>
+            </section>
+            <section class="game-scores">
+                <h2>Scores</h2>
+                <ul id="score-board">
+                    <li>Joueur 1: <span id="score1">0</span></li>
+                    <li>Joueur 2: <span id="score2">0</span></li>
+                </ul>
+            </section>
+        </aside>
+    </div>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

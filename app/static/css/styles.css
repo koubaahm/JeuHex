@@ -1,0 +1,134 @@
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Assure que le contenu est centré verticalement sur la page */
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+#hex-game-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+}
+
+.hexagon {
+    width: 60px;
+    height: 52px;
+    background-color: #f0f0f0;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    cursor: pointer;
+    margin: 1px;
+    transition: transform 0.2s ease-in-out; /* Ajoute une petite animation lors du clic */
+}
+
+.hexagon:hover {
+    transform: scale(1.1); /* Agrandit légèrement l'hexagone au survol pour une meilleure visibilité */
+}
+
+.hexagon.player1 {
+    background-color: red; /* Couleur pour le joueur 1 */
+}
+
+.hexagon.player2 {
+    background-color: blue; /* Couleur pour le joueur 2 */
+}
+
+#current-player, #winner-message {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#reset-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+
+#game-container {
+display: grid;
+grid-template-columns: auto 300px;
+gap: 20px;
+width: 90vw;
+max-width: 1200px;
+align-items: start;
+}
+
+.game-header {
+grid-column: 1 / -1; /* spans all columns */
+background-color: #546e7a;
+color: white;
+padding: 10px;
+text-align: center;
+}
+
+.player-info {
+display: flex;
+justify-content: space-between;
+padding: 0 20px;
+}
+
+.game-main {
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+#hex-game-board {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+padding: 20px;
+background-color: white;
+border-radius: 10px;
+}
+
+.game-button {
+margin-top: 20px;
+padding: 10px 20px;
+background-color: #4caf50;
+color: white;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+}
+
+.game-aside {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+.game-instructions, .game-scores {
+background-color: white;
+padding: 15px;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.game-scores ul {
+padding-left: 20px;
+}
