@@ -16,6 +16,9 @@
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .navbar-3d:hover {
             transform: translateY(-5px);
@@ -30,20 +33,30 @@
         .navbar-3d a:hover {
             color: #63b3ed;
         }
+        .navbar-title {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .navbar-links {
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">
     <nav class="navbar-3d">
-        <div class="container mx-auto text-center">
-            <h1><a href="/" class="text-3xl text-white font-bold">Bienvenue sur Hexagame</a></h1>
+        <div class="navbar-links">
+            <!-- Espace vide pour aligner le lien à droite -->
         </div>
-        <!-- Uncomment the lines below if you want to include navigation links
-        <div>
+        <div class="navbar-title">
+            <h1 class="text-3xl text-white font-bold"><a href="/">Bienvenue sur Hexagame</a></h1>
+        </div>
+        <div class="navbar-links">
+            <!-- Ajout des liens de navigation à droite -->
             <a href="#about" class="text-white hover:underline mx-2">À propos</a>
-            <a href="#inspiration" class="text-white hover:underline mx-2">Inspiration</a>
-            <a href="#rules" class="text-white hover:underline mx-2">Règles</a>
         </div>
-        -->
     </nav>
+    <main class="container mx-auto px-6 py-10 mt-10 flex-grow">
+        <!-- Contenu principal ici -->
+    </main>
 </body>
 </html>
