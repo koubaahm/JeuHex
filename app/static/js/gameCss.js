@@ -16,11 +16,11 @@ document.addEventListener("DOMContentLoaded", function() {
     function checkWin(player) {
         const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
         let win = false;
-    
+
         function dfs(r, c) {
             if (visited[r][c]) return;
             visited[r][c] = true;
-    
+
             // Conditions de victoire spécifiques à chaque joueur
             if (player === 1 && r === rows - 1) {  // Victoire verticale pour le Joueur 1
                 win = true;
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 win = true;
                 return;
             }
-    
+
             const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
             for (let [dr, dc] of directions) {
                 const nr = r + dr;
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
         }
-    
+
         // Initier la recherche à partir des positions de départ appropriées pour chaque joueur
         for (let i = 0; i < (player === 1 ? cols : rows); i++) {
             if (!win) {
@@ -53,8 +53,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return win;
     }
-    
-    
+
+
 
     function resetGame() {
         gameBoard = Array.from({ length: rows }, () => Array(cols).fill(0));
