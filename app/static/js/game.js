@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     // Ajouter un écouteur d'événement pour détecter les changements de taille du plateau
     difficultySelect.addEventListener("change", updateBoardSize);
-    
+
     //montre le joueur courant
     function updateCurrentPlayerDisplay() {
         currentPlayerSpan.textContent = `Joueur actuel : Joueur ${currentPlayer}`;
@@ -200,10 +200,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 }, 1000);
             }
         }, 1000);
+        //  score du joueur gagnant
+    const scoreElement = document.getElementById(`score${currentPlayer}`);
+    let score = parseInt(scoreElement.textContent);
+    score++;
+    scoreElement.textContent = score;
     }
 
     //Clique
     function hexagonClick() {
+        if (winnerMessage.textContent !== '') {
+        // Si le message de victoire est affiché, cela signifie que le jeu est en cours de réinitialisation
+        // Donc, empêcher les joueurs de jouer
+        return;
+    }
         const row = parseInt(this.dataset.row);
         const col = parseInt(this.dataset.col);
         if (gameBoard[row][col] === 0) {
@@ -214,8 +224,8 @@ document.addEventListener("DOMContentLoaded", function() {
             playerMoves[currentPlayer].push([row, col]);
 
             if (checkWin(currentPlayer)) {
-                displayFireworks();
-                setTimeout(resetGame, 1500);
+                 displayFireworks();  // Afficher les feux d'artifice au lieu de l'alert
+            setTimeout(resetGame, 9000);  // Attendre 9 secondes avant de réinitialiser le jeu
             } else {
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
                 updateCurrentPlayerDisplay();
