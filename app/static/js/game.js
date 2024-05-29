@@ -83,22 +83,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         return win;
     }
-    // booléen si il ya une victoire en un coup
-    function canWinInOneMove(player) {
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                if (gameBoard[r][c] === 0) {
-                    gameBoard[r][c] = player;
-                    if (checkWin(player)) {
-                        gameBoard[r][c] = 0;
-                        return true;
-                    }
-                    gameBoard[r][c] = 0;
-                }
-            }
-        }
-        return false;
-    }
 
     //rafraichir la partie
     function resetGame() {
@@ -210,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function() {
     scoreElement.textContent = score;
     }
 
-    //Clique
+    //Clique dans une cellule
     function hexagonClick() {
         if (winnerMessage.textContent !== '') {
         // Si le message de victoire est affiché, cela signifie que le jeu est en cours de réinitialisation
@@ -410,49 +394,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         return capture;
-    }
-    //plus court chemin bfs
-    function shortestPathToVictory(player) {
-        const queue = [];
-        const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-        let minDistance = Infinity;
-
-        // Enqueue all starting positions based on player
-        if (player === 1) {
-            for (let c = 0; c < cols; c++) {
-                if (gameBoard[0][c] === player) {
-                    queue.push([0, c, 0]);
-                    visited[0][c] = true;
-                }
-            }
-        } else {
-            for (let r = 0; r < rows; r++) {
-                if (gameBoard[r][0] === player) {
-                    queue.push([r, 0, 0]);
-                    visited[r][0] = true;
-                }
-            }
-        }
-
-        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
-
-        while (queue.length > 0) {
-            const [r, c, d] = queue.shift();
-            if ((player === 1 && r === rows - 1) || (player === 2 && c === cols - 1)) {
-                minDistance = Math.min(minDistance, d);
-            }
-
-            for (let [dr, dc] of directions) {
-                const nr = r + dr;
-                const nc = c + dc;
-                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc] && gameBoard[nr][nc] !== (player === 1 ? 2 : 1)) {
-                    queue.push([nr, nc, d + 1]);
-                    visited[nr][nc] = true;
-                }
-            }
-        }
-
-        return minDistance === Infinity ? 0 : minDistance;
     }
 
     //blockage critique (arrete un coup de victoire en 1)
@@ -784,22 +725,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 
-
-
-    //les coups joués
-    function getMoves() {
-        const moves = [];
-        for (let r = 1; r < rows - 1; r++) {
-            for (let c = 1; c < cols - 1; c++) {
-                if (gameBoard[r][c] === 0) {
-                    moves.push({ r, c });
-                }
-            }
-        }
-        moves.sort((a, b) => a.value - b.value);
-        return moves;
-    }
-
     // Les voisins de la case
     function getNeighbours(r, c) {
         const neighbours = [];
@@ -829,29 +754,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         return connectedCount;
     }
-
-    //distance vers les deux cotés de la ma[
-    function distanceToGoal(r, c, player) {
-        const opponent = player === 1 ? 2 : 1;
-        const queue = [[r, c, 0]];
-        const visited = new Set();
-        visited.add(`${r},${c}`);
-
-        while (queue.length > 0) {
-            const [cr, cc, dist] = queue.shift();
-            if ((player === 1 && cr === rows - 1) || (player === 2 && cc === cols - 1)) {
-                return dist;
-            }
-            for (let [nr, nc] of getNeighbours(cr, cc)) {
-                if (!visited.has(`${nr},${nc}`) && gameBoard[nr][nc] !== opponent) {
-                    visited.add(`${nr},${nc}`);
-                    queue.push([nr, nc, dist + 1]);
-                }
-            }
-        }
-        return Infinity;
-    }
-
 
 
 
