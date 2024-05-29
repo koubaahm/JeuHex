@@ -9,8 +9,8 @@ document.addEventListener("DOMContentLoaded", function() {
     let numberPlayers=1;
     const player1Name = sessionStorage.getItem("player1Name") || "Joueur 1";
     const player2Name = sessionStorage.getItem("player2Name") || "Joueur 2";
-    let rows = 7    ; // Height of the board
-    let cols = 7; // Width of the board
+    let rows = 4     ; // Height of the board
+    let cols = 4; // Width of the board
     let currentPlayer = 1;
     let opponent = currentPlayer === 1 ? 2 : 1 ;
     let gameBoard = Array.from({ length: rows }, () => Array(cols).fill(0));
@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
         1: [], // Moves of Player 1 (Red)
         2: []  // Moves of Player 2 (Blue)
     };
-    const isAlphaBeta = false;
+    const isAlphaBeta = true;
 
     // Fonction pour mettre à jour la taille du plateau en fonction du choix de difficulté
     function updateBoardSize() {
@@ -231,10 +231,96 @@ document.addEventListener("DOMContentLoaded", function() {
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
                 updateCurrentPlayerDisplay();
             }
-            if (currentPlayer === 2 && numberPlayers=== 1) {
+            if (currentPlayer === 2 && numberPlayers === 1) {
                 setTimeout(makeAiMove, 500);
             }
         }
+    }
+
+    function shortestPathToVictory(player) {
+        const directions = [
+            [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]
+        ];
+        let queue = [];
+        let visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        let connectedToEnd = false;
+
+        // Initialize the queue with the player's moves
+        for (const [r, c] of playerMoves[player]) {
+            queue.push([r, c, 0]); // Initialize with distance 0
+            visited[r][c] = true;
+        }
+
+        // Perform BFS
+        while (queue.length > 0) {
+            const [r, c, dist] = queue.shift();
+
+            // Check if we've reached the target
+            if ((player === 1 && r === rows - 1) || (player === 2 && c === cols - 1)) {
+                connectedToEnd = true;
+            }
+            if ((player === 1 && r === 0 && connectedToEnd) || (player === 2 && c === 0 && connectedToEnd)) {
+                return dist;
+            }
+
+            // Explore neighbors
+            for (const [dr, dc] of directions) {
+                const nr = r + dr;
+                const nc = c + dc;
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {
+                    if (gameBoard[nr][nc] === 0) {
+                        queue.push([nr, nc, dist + 1]); // distance 1
+                    } else if (gameBoard[nr][nc] === player) {
+                        queue.push([nr, nc, dist]); // distance 0
+                    }
+                    visited[nr][nc] = true;
+                }
+            }
+        }
+        return -1; // No path found
+    }
+
+
+    function connectedParts(player) {
+        const directions = [
+            [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]
+        ];
+        let visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        let connectedParts = [];
+
+        // Helper function to perform BFS from a given start position
+        function bfs(r, c) {
+            let queue = [[r, c]];
+            let component = [];
+            visited[r][c] = true;
+            component.push({ r, c });
+
+            while (queue.length > 0) {
+                const [cr, cc] = queue.shift();
+                for (const [dr, dc] of directions) {
+                    const nr = cr + dr;
+                    const nc = cc + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc] && gameBoard[nr][nc] === player) {
+                        queue.push([nr, nc]);
+                        visited[nr][nc] = true;
+                        component.push({ r: nr, c: nc });
+                    }
+                }
+            }
+            return component;
+        }
+
+        // Iterate over all player moves to find connected components
+        for (const [r, c] of playerMoves[player]) {
+            if (!visited[r][c] && gameBoard[r][c] === player) {
+                const component = bfs(r, c);
+                if (component.length > 0) {
+                    connectedParts.push(component);
+                }
+            }
+        }
+
+        return connectedParts; // Return all connected components
     }
 
     //case capturé
@@ -282,6 +368,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }*/
 
     }
+    
     //un mouvement qui capture une chaine
     function isDirectionalCapturingMove(row, col, opponent) {
         // Check if this move captures the opponent by blocking both relevant paths
@@ -322,50 +409,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         return capture;
     }
-    //plus court chemin bfs
-    function shortestPathToVictory(player) {
-        const queue = [];
-        const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
-        let minDistance = Infinity;
-
-        // Enqueue all starting positions based on player
-        if (player === 1) {
-            for (let c = 0; c < cols; c++) {
-                if (gameBoard[0][c] === player) {
-                    queue.push([0, c, 0]);
-                    visited[0][c] = true;
-                }
-            }
-        } else {
-            for (let r = 0; r < rows; r++) {
-                if (gameBoard[r][0] === player) {
-                    queue.push([r, 0, 0]);
-                    visited[r][0] = true;
-                }
-            }
-        }
-
-        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
-
-        while (queue.length > 0) {
-            const [r, c, d] = queue.shift();
-            if ((player === 1 && r === rows - 1) || (player === 2 && c === cols - 1)) {
-                minDistance = Math.min(minDistance, d);
-            }
-
-            for (let [dr, dc] of directions) {
-                const nr = r + dr;
-                const nc = c + dc;
-                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc] && gameBoard[nr][nc] !== (player === 1 ? 2 : 1)) {
-                    queue.push([nr, nc, d + 1]);
-                    visited[nr][nc] = true;
-                }
-            }
-        }
-
-        return minDistance === Infinity ? 0 : minDistance;
-    }
-
+    
     //blockage critique (arrete un coup de victoire en 1)
     function isCriticalBlock(row, col, opponent) {
         const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
@@ -402,6 +446,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return !stillWin; // Critical if blocking this move prevents the win
     }
 
+    //Evaluation d'une case
     function evaluateMove(row, col, player) {
         if (gameBoard[row][col] !== 0) return -Infinity; // Already occupied tiles should not be evaluated
 
@@ -411,7 +456,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Initial preference for center control
         const centerRow = Math.floor(rows / 2);
         const centerCol = Math.floor(cols / 2);
-        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol);
+        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol); // make it with 0.
         score -= distanceToCenter; // Closer to the center is better
 
         // Check for winning move
@@ -424,13 +469,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Evaluate the shortest path to victory for the current player
         const opponent = player === 1 ? 2 : 1;
-        const playerPathBefore = greedyShortestPathToVictory(player);
-        const opponentPathBefore = greedyShortestPathToVictory(opponent);
+        const playerPathBefore = shortestPathToVictory(player);
+        const opponentPathBefore = shortestPathToVictory(opponent);
 
         gameBoard[row][col] = player; // Temporarily make the move
         playerMoves[player].push([row, col]);
-        const playerPathAfter = greedyShortestPathToVictory(player);
-        const opponentPathAfter = greedyShortestPathToVictory(opponent);
+        const playerPathAfter = shortestPathToVictory(player);
+        const opponentPathAfter = shortestPathToVictory(opponent);
         gameBoard[row][col] = 0; // Undo the move
         playerMoves[player].pop();
 
@@ -485,8 +530,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return { score, logDetails };
     }
 
-    //evaluation d'un mouvement
-    function evaluateMoveAlphaBeta(row, col, player, depth = 3, alpha = -Infinity, beta = Infinity, isMaximizingPlayer = true) {
+    //Algorithme Alphabeta
+    function alphaBeta(row, col, player, depth = 3, alpha = -Infinity, beta = Infinity, isMaximizingPlayer = true) {
         let { score, logDetails } = evaluateMove(row, col, player);
 
         const opponent = player === 1 ? 2 : 1;
@@ -494,7 +539,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // If depth is greater than 1, simulate opponent's move
         if (depth > 1) {
             let opponentBestScore = -Infinity;
-            gameBoard[row][col] = player; // Temporarily make the move for the current player
+            gameBoard[row][col] = player;
             const opponentMoves = [];
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
@@ -506,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             for (let move of opponentMoves) {
                 const { r, c } = move;
-                const opponentScore = evaluateMoveAlphaBeta(r, c, opponent, depth - 1, alpha, beta, !isMaximizingPlayer);
+                const opponentScore = alphaBeta(r, c, opponent, depth - 1, alpha, beta, !isMaximizingPlayer);
                 if (opponentScore > opponentBestScore) {
                     opponentBestScore = opponentScore;
                 }
@@ -521,12 +566,12 @@ document.addEventListener("DOMContentLoaded", function() {
             gameBoard[row][col] = 0; // Undo the current player's move
         }
 
-        console.log(`Tile (${row}, ${col}): Score = ${score}, Details: ${logDetails.join(', ')}`);
 
         return score;
     }
 
-    function evaluateMoveSSSstar(row, col, player, depth = 3) {
+    //Algorithme SSS*
+    function SSSstar(row, col, player, depth = 3) {
         let { score, logDetails } = evaluateMove(row, col, player);
 
         const opponent = player === 1 ? 2 : 1;
@@ -546,7 +591,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             for (let move of opponentMoves) {
                 const { r, c } = move;
-                const opponentScore = evaluateMoveSSSstar(r, c, opponent, depth - 1);
+                const opponentScore = SSSstar(r, c, opponent, depth - 1);
                 if (opponentScore > opponentBestScore) {
                     opponentBestScore = opponentScore;
                 }
@@ -555,121 +600,11 @@ document.addEventListener("DOMContentLoaded", function() {
             gameBoard[row][col] = 0; // Undo the current player's move
         }
 
-        console.log(`Tile (${row}, ${col}): Score = ${score}, Details: ${logDetails.join(', ')}`);
 
         return score;
     }
 
-
-
-    function evaluateMoveSSSstar(row, col, player, depth = 3) {
-        if (gameBoard[row][col] !== 0) return -Infinity; // Already occupied tiles should not be evaluated
-
-        let score = 0;
-        let logDetails = [];
-
-        // Initial preference for center control
-        const centerRow = Math.floor(rows / 2);
-        const centerCol = Math.floor(cols / 2);
-        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol);
-        score -= distanceToCenter; // Closer to the center is better
-
-        // Check for winning move
-        gameBoard[row][col] = player; // Temporarily make the move
-        if (checkWin(player)) {
-            score += 100; // High score for a winning move
-            logDetails.push('Winning Move');
-        }
-        gameBoard[row][col] = 0; // Undo the move
-
-        // Evaluate the shortest path to victory for the current player
-        const opponent = player === 1 ? 2 : 1;
-        const playerPathBefore = greedyShortestPathToVictory(player);
-        const opponentPathBefore = greedyShortestPathToVictory(opponent);
-
-        gameBoard[row][col] = player; // Temporarily make the move
-        playerMoves[player].push([row, col]);
-        const playerPathAfter = greedyShortestPathToVictory(player);
-        const opponentPathAfter = greedyShortestPathToVictory(opponent);
-        gameBoard[row][col] = 0; // Undo the move
-        playerMoves[player].pop();
-
-        const playerPathDelta = (playerPathBefore === -1) ? 0 : playerPathBefore - playerPathAfter;
-        const opponentPathDelta = (opponentPathBefore === -1) ? 0 : opponentPathBefore - opponentPathAfter;
-        score += playerPathDelta * 5; // Shorten our path to victory
-        score -= opponentPathDelta * 5; // Lengthen opponent's path to victory
-
-        logDetails.push(`Shortest Path to Victory: ${playerPathAfter}, Opponent Path: ${opponentPathAfter}`);
-
-        // Blocking opponent's critical path
-        gameBoard[row][col] = opponent; // Temporarily make the move for opponent
-        if (checkWin(opponent)) {
-            score += 90; // High score for blocking opponent's winning move
-            logDetails.push('Blocking Opponent Winning Move');
-        }
-        gameBoard[row][col] = 0; // Undo the move
-
-        // Emphasize blocking critical paths and capturing
-        if (isCriticalBlock(row, col, opponent)) {
-            score += 80; // Emphasize blocking critical paths
-            logDetails.push('Critical Block');
-        }
-        if (isDirectionalCapturingMove(row, col, opponent)) {
-            score += 85; // High score for directional capturing moves
-            logDetails.push('Directional Capture');
-        }
-        if (isCapturedTile(row, col, player)) {
-            score -= 80;
-            logDetails.push('Captured tile');
-        }
-        // Potential bridges and strategic positions for player
-        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
-        for (let [dr, dc] of directions) {
-            const nr = row + dr;
-            const nc = col + dc;
-            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                if (gameBoard[nr][nc] === player) {
-                    score += 7; // Lower score for creating bridges or connecting pieces
-                } else if (gameBoard[nr][nc] === opponent) {
-                    // Block opponent's strategic position
-                    const furtherNr = nr + dr;
-                    const furtherNc = nc + dc;
-                    if (furtherNr >= 0 && furtherNr < rows && furtherNc >= 0 && furtherNc < cols && gameBoard[furtherNr][furtherNc] === opponent) {
-                        score += 10; // Reward for blocking potential bridges
-                    }
-                }
-            }
-        }
-
-        // If depth is greater than 1, simulate opponent's move
-        if (depth > 1) {
-            let opponentBestScore = -Infinity;
-            gameBoard[row][col] = player; // Temporarily make the move for the current player
-            const opponentMoves = [];
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (gameBoard[r][c] === 0) {
-                        opponentMoves.push({ r, c });
-                    }
-                }
-            }
-
-            for (let move of opponentMoves) {
-                const { r, c } = move;
-                const opponentScore = evaluateMoveSSSstar(r, c, opponent, depth - 1);
-                if (opponentScore > opponentBestScore) {
-                    opponentBestScore = opponentScore;
-                }
-            }
-            score -= opponentBestScore; // Subtract the opponent's best score to simulate blocking
-            gameBoard[row][col] = 0; // Undo the current player's move
-        }
-
-        console.log(`Tile (${row}, ${col}): Score = ${score}, Details: ${logDetails.join(', ')}`);
-
-        return score;
-    }
-
+    
 
     //plus court chemin glouton
     function greedyShortestPathToVictory(player) {
@@ -764,9 +699,9 @@ document.addEventListener("DOMContentLoaded", function() {
             const { r, c } = move;
             let score;
             if (isAlphaBeta) {
-                score = evaluateMoveAlphaBeta(r, c, currentPlayer, 2, -Infinity, Infinity, true);
+                score = alphaBeta(r, c, currentPlayer, 2, -Infinity, Infinity, true);
             } else {
-                score = evaluateMoveSSSstar(r, c, currentPlayer, 2);
+                score = SSSstar(r, c, currentPlayer, 2);
             }
             if (!evaluationBoard[r]) {
                 evaluationBoard[r] = [];
