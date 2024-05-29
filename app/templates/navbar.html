@@ -7,39 +7,10 @@
     <title>Hexagame - Accueil</title>
     <!-- Inclure Tailwind CSS via CDN -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
 
     <style>
-        /* Styles pour la navbar en 3D */
-        .navbar-3d {
-            background-color: #2d3748;
-            padding: 20px;
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar-3d:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2), 0 10px 10px rgba(0, 0, 0, 0.1);
-        }
-        .navbar-3d a {
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            transition: color 0.3s ease;
-        }
-        .navbar-3d a:hover {
-            color: #63b3ed;
-        }
-        .navbar-title {
-            flex-grow: 1;
-            text-align: center;
-        }
-        .navbar-links {
-            flex-shrink: 0;
-        }
+
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal">

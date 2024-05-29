@@ -4,285 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="/static/image/favicon.ico">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 
     <!-- Inclure SortableJS via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            padding: -100px;
-            margin: 10px;
-        }
-
-        .grid-item {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s;
-            cursor: move;
-        }
-
-        .grid-item:hover {
-            transform: translateY(-10px) scale(1.05);
-        }
-
-        .grid-item img {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .game-button {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #E74C3C;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 5px #C0392B;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .game-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 300%;
-            height: 300%;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            transform: translateX(-50%) translateY(-100%) rotate(45deg);
-        }
-
-        .game-button:hover::before {
-            transform: translateX(-50%) translateY(100%) rotate(45deg);
-        }
-
-        .game-button:active {
-            box-shadow: 0 2px #C0392B;
-            transform: translateY(2px);
-        }
-
-        .about-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #3498db;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            box-shadow: 0 4px #2980b9;
-            transition: all 0.3s ease;
-        }
-
-        .about-button:hover {
-            background-color: #2980b9;
-        }
-
-        .about-button:active {
-            box-shadow: 0 2px #2980b9;
-            transform: translateY(2px);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 50;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 300px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            transform: translateZ(0);
-            transition: transform 0.3s ease-out;
-        }
-
-        .modal-content.active {
-            transform: translateZ(100px);
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .modal-header {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .submit-button {
-            display: inline-block;
-            padding: 15px 30px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #E74C3C;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 5px #C0392B;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        .submit-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 300%;
-            height: 300%;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            transform: translateX(-50%) translateY(-100%) rotate(45deg);
-        }
-
-        .submit-button:hover::before {
-            transform: translateX(-50%) translateY(100%) rotate(45deg);
-        }
-
-        .submit-button:active {
-            box-shadow: 0 2px #C0392B;
-            transform: translateY(2px);
-        }
-
-        .background-3d {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
-            perspective: 1000px;
-            overflow: hidden;
-            z-index: -1;
-        }
-
-        .background-3d div {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.2);
-            animation: float 5s infinite ease-in-out;
-        }
-
-        .background-3d div:nth-child(1) {
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .background-3d div:nth-child(2) {
-            top: 40%;
-            left: 50%;
-            animation-delay: 2s;
-        }
-
-        .background-3d div:nth-child(3) {
-            top: 70%;
-            left: 80%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0) rotateX(0) rotateY(0);
-            }
-            50% {
-                transform: translateY(-20px) rotateX(360deg) rotateY(360deg);
-            }
-            100% {
-                transform: translateY(0) rotateX(0) rotateY(0);
-            }
-        }
-
-        .header-custom {
-            padding: 20px 0;
-            font-size: 2.5rem;
-        }
-
-        .footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            background-color: #1a202c;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transform: translateZ(0);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .footer:hover {
-            transform: translateY(-5px) translateZ(20px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans leading-normal tracking-normal flex flex-col min-h-screen relative">
@@ -357,7 +86,8 @@
         <div class="modal-body">
             <input type="text" id="player1Name" class="input" placeholder="Nom du Joueur 1">
             <input type="text" id="player2Name" class="input" placeholder="Nom du Joueur 2">
-            <button id="startGame" class="submit-button">Commencer le jeu</button>
+            <button id="startAlphaBeta" class="submit-button">Jouer AlphaBeta</button>
+            <button id="startSSSStar" class="submit-button">Jouer SSS*</button>
         </div>
     </div>
 </div>
@@ -375,7 +105,8 @@
         const playButton = document.getElementById("play-button");
         const modal = document.getElementById("playerModal");
         const closeModal = document.getElementById("closeModal");
-        const startGame = document.getElementById("startGame");
+        const startAlphaBeta = document.getElementById("startAlphaBeta");
+        const startSSSStar = document.getElementById("startSSSStar");
 
         playButton.addEventListener("click", function () {
             modal.style.display = "flex";
@@ -394,16 +125,28 @@
             }
         });
 
-        startGame.addEventListener("click", function () {
+        function startGame(algorithm) {
             const player1Name = document.getElementById("player1Name").value;
             const player2Name = document.getElementById("player2Name").value;
             if (player1Name && player2Name) {
                 sessionStorage.setItem("player1Name", player1Name);
                 sessionStorage.setItem("player2Name", player2Name);
-                window.location.href = "/game";
+                if (algorithm === 'AlphaBeta') {
+                    window.location.href = "/gamealphabeta.html";
+                } else if (algorithm === 'SSSStar') {
+                    window.location.href = "/sss*game.html";
+                }
             } else {
                 alert("Veuillez entrer les noms des deux joueurs.");
             }
+        }
+
+        startAlphaBeta.addEventListener("click", function () {
+            startGame('AlphaBeta');
+        });
+
+        startSSSStar.addEventListener("click", function () {
+            startGame('SSSStar');
         });
 
         // Vérification de l'initialisation de SortableJS
@@ -426,3 +169,559 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

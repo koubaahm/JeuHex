@@ -22,16 +22,20 @@
             margin: 1px;
             transition: all 0.3s ease-in-out;
         }
+
         .hexagon:hover {
             transform: scale(1.1);
             background-color: #e2e2e2;
         }
+
         .hexagon.player1 {
             background-color: red;
         }
+
         .hexagon.player2 {
             background-color: blue;
         }
+
         @keyframes slideInFromLeft {
             0% {
                 transform: translateX(-100%);
@@ -40,21 +44,36 @@
                 transform: translateX(0);
             }
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
+
         .joueur-img {
             transition: transform 0.5s ease;
             display: inline-block;
         }
+
         .joueur-img:hover {
             transform: rotate(360deg);
         }
+
         @keyframes fireworks {
-            from { transform: scale(0.5); opacity: 1; }
-            to { transform: scale(1.5); opacity: 0; }
+            from {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            to {
+                transform: scale(1.5);
+                opacity: 0;
+            }
         }
+
         .firework {
             position: fixed;
             top: 50%;
@@ -68,8 +87,9 @@
             animation: fireworks 1s ease-out forwards;
             z-index: 9999;
         }
+
         #winner-message {
-            opacity: 0;  /* Démarre invisible */
+            opacity: 0; /* Démarre invisible */
             transition: opacity 0.5s ease; /* Animation douce de l'opacité */
             position: absolute;
             top: 50%;
@@ -79,12 +99,15 @@
             color: black;
             z-index: 10000;
         }
+
         .player1-color {
             color: red;
         }
+
         .player2-color {
             color: blue;
         }
+
         /* Effets 3D */
         .card {
             background-color: white;
@@ -92,10 +115,12 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .card:hover {
             transform: translateY(-10px) scale(1.05);
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
+
         .button-3d {
             display: inline-block;
             padding: 15px 30px;
@@ -112,6 +137,7 @@
             overflow: hidden;
             margin-top: 20px;
         }
+
         .button-3d::before {
             content: '';
             position: absolute;
@@ -123,13 +149,16 @@
             transition: all 0.3s ease;
             transform: translateX(-50%) translateY(-100%) rotate(45deg);
         }
+
         .button-3d:hover::before {
             transform: translateX(-50%) translateY(100%) rotate(45deg);
         }
+
         .button-3d:active {
             box-shadow: 0 2px #2980b9;
             transform: translateY(2px);
         }
+
         .background-3d {
             position: absolute;
             top: 0;
@@ -141,6 +170,7 @@
             overflow: hidden;
             z-index: -1;
         }
+
         .background-3d div {
             position: absolute;
             width: 100px;
@@ -148,21 +178,25 @@
             background: rgba(255, 255, 255, 0.2);
             animation: float 5s infinite ease-in-out;
         }
+
         .background-3d div:nth-child(1) {
             top: 20%;
             left: 10%;
             animation-delay: 0s;
         }
+
         .background-3d div:nth-child(2) {
             top: 40%;
             left: 50%;
             animation-delay: 2s;
         }
+
         .background-3d div:nth-child(3) {
             top: 70%;
             left: 80%;
             animation-delay: 4s;
         }
+
         @keyframes float {
             0% {
                 transform: translateY(0) rotateX(0) rotateY(0);
@@ -174,6 +208,7 @@
                 transform: translateY(0) rotateX(0) rotateY(0);
             }
         }
+
         .home-button {
             position: absolute;
             top: 20px;
@@ -192,25 +227,54 @@
             box-shadow: 0 5px #2980b9;
             transition: all 0.3s ease;
         }
+
         .home-button:active {
             box-shadow: 0 2px #2980b9;
             transform: translateY(2px);
         }
 
-         .sortable-ghost {
+        .sortable-ghost {
             opacity: 0.5;
         }
+
         .sortable-chosen {
             background-color: #e2e2e2;
         }
+
         .sortable-drag {
             cursor: move;
         }
+
+        .top-buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #reset-button {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #game-container {
+            margin-top: 100px; /* Ajustez cette valeur selon vos besoins */
+        }
+
     </style>
 </head>
 
-<body class="bg-gray-200 flex justify-center items-center min-h-screen relative" data-firework-image="{{ url_for('static', filename='image/feuArtifice.png') }}">
+<body class="bg-gray-200 flex flex-col items-center min-h-screen relative"
+      data-firework-image="{{ url_for('static', filename='image/feuArtifice.png') }}">
+
     <button class="home-button" onclick="window.location.href='/'">⌂</button>
+    <button id="reset-button" class="button-3d">Réinitialiser le jeu</button>
+
     <div id="game-container" class="container mx-auto p-4 flex flex-row items-start">
         <!-- Tableau de bord latéral pour les informations des joueurs -->
         <div class="flex flex-col">
@@ -218,14 +282,16 @@
                 <h2 class="text-xl font-bold text-center mb-4">Joueurs & Scores</h2>
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center">
-                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 1" class="w-10 h-10 mr-2 joueur-img">
+                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 1"
+                             class="w-10 h-10 mr-2 joueur-img">
                         <span id="player1Name">Joueur 1</span>
                     </div>
                     <span id="score1">0</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 2" class="w-10 h-10 mr-2 joueur-img">
+                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 2"
+                             class="w-10 h-10 mr-2 joueur-img">
                         <span id="player2Name">Joueur 2</span>
                     </div>
                     <span id="score2">0</span>
@@ -233,8 +299,9 @@
             </aside>
             <!-- Partie du choix de la difficulté -->
             <aside class="w-64 card p-4 sortable-item">
-                <label for="difficulty-select" class="text-xl font-bold text-center mb-4">Choix de la difficulté</label>
+                <label for="difficulty-select" class="text-xl font-bold text-center mb-4">Taille Hexagone</label>
                 <select id="difficulty-select" class="block w-full bg-gray-100 border border-gray-300 rounded p-2">
+                    <option value="4">4x4</option>
                     <option value="5">5x5</option>
                     <option value="6">6x6</option>
                     <option value="7" selected>7x7</option>
@@ -256,15 +323,15 @@
             </header>
             <main class="flex flex-col items-center">
                 <div id="hex-game-board" class="mt-4"></div>
-                <button id="reset-button" class="button-3d mt-4">Réinitialiser le jeu</button>
             </main>
-            <section class="p-4 bg-white rounded-lg shadow-lg mt-4 transition-transform duration-200 hover:scale-105 card sortable-item">
+            <section
+                    class="p-4 bg-white rounded-lg shadow-lg mt-4 transition-transform duration-200 hover:scale-105 card sortable-item">
                 <h2 class="font-bold">Instructions</h2>
                 <p>Connectez vos côtés en couleurs avant votre adversaire.</p>
             </section>
         </div>
     </div>
-<!-- Inclure le footer -->
+    <!-- Inclure le footer -->
     {% include 'footer.html' %}
     <!-- Animation de fond en 3D -->
     <div class="background-3d">
@@ -278,7 +345,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <!-- Script JavaScript pour afficher les noms des joueurs -->
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const player1NameElement = document.getElementById("player1Name");
             const player2NameElement = document.getElementById("player2Name");
             const player1Name = sessionStorage.getItem("player1Name") || "Joueur 1";
@@ -295,10 +362,10 @@
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             dragClass: 'sortable-drag',
-            onStart: function() {
+            onStart: function () {
                 console.log('Drag started');
             },
-            onEnd: function() {
+            onEnd: function () {
                 console.log('Drag ended');
             }
         });
