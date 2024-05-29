@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const resetButton = document.getElementById("reset-button");
     const difficultySelect = document.getElementById("difficulty-select");
 
+     // Vérifier si la page actuelle est alphabeta_game.html
+    const isAlphaBeta = window.location.pathname.includes("alphabeta_game.html");
+
     //modifie a 1 pour rendre le joueur
     let numberPlayers=1;
     const player1Name = sessionStorage.getItem("player1Name") || "Joueur 1";
@@ -19,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
         1: [], // Moves of Player 1 (Red)
         2: []  // Moves of Player 2 (Blue)
     };
-    const isAlphaBeta = false;
+    //const isAlphaBeta = false;
 
     // Fonction pour mettre à jour la taille du plateau en fonction du choix de difficulté
     function updateBoardSize() {

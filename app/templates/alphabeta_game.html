@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexagame - Jouez</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+
+    <!-- Inclure SortableJS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <style>
+        .hexagon {
+            width: 60px;
+            height: 52px;
+            background-color: #f0f0f0;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin: 1px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .hexagon:hover {
+            transform: scale(1.1);
+            background-color: #e2e2e2;
+        }
+
+        .hexagon.player1 {
+            background-color: red;
+        }
+
+        .hexagon.player2 {
+            background-color: blue;
+        }
+
+        @keyframes slideInFromLeft {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .joueur-img {
+            transition: transform 0.5s ease;
+            display: inline-block;
+        }
+
+        .joueur-img:hover {
+            transform: rotate(360deg);
+        }
+
+        @keyframes fireworks {
+            from {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            to {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .firework {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            display: block;
+            width: 100px;
+            height: 100px;
+            background: url('{{ url_for("static", filename="image/feuArtifice.png") }}') no-repeat center center;
+            background-size: contain;
+            transform: translate(-50%, -50%);
+            animation: fireworks 1s ease-out forwards;
+            z-index: 9999;
+        }
+
+        #winner-message {
+            opacity: 0; /* Démarre invisible */
+            transition: opacity 0.5s ease; /* Animation douce de l'opacité */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: black;
+            z-index: 10000;
+        }
+
+        .player1-color {
+            color: red;
+        }
+
+        .player2-color {
+            color: blue;
+        }
+
+        /* Effets 3D */
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-3d {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px #2980b9;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .button-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            transform: translateX(-50%) translateY(-100%) rotate(45deg);
+        }
+
+        .button-3d:hover::before {
+            transform: translateX(-50%) translateY(100%) rotate(45deg);
+        }
+
+        .button-3d:active {
+            box-shadow: 0 2px #2980b9;
+            transform: translateY(2px);
+        }
+
+        .background-3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+            perspective: 1000px;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .background-3d div {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            animation: float 5s infinite ease-in-out;
+        }
+
+        .background-3d div:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .background-3d div:nth-child(2) {
+            top: 40%;
+            left: 50%;
+            animation-delay: 2s;
+        }
+
+        .background-3d div:nth-child(3) {
+            top: 70%;
+            left: 80%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+            50% {
+                transform: translateY(-20px) rotateX(360deg) rotateY(360deg);
+            }
+            100% {
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+        }
+
+        .home-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px #2980b9;
+            transition: all 0.3s ease;
+        }
+
+        .home-button:active {
+            box-shadow: 0 2px #2980b9;
+            transform: translateY(2px);
+        }
+
+        .sortable-ghost {
+            opacity: 0.5;
+        }
+
+        .sortable-chosen {
+            background-color: #e2e2e2;
+        }
+
+        .sortable-drag {
+            cursor: move;
+        }
+
+        .top-buttons-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #reset-button {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #game-container {
+            margin-top: 100px; /* Ajustez cette valeur selon vos besoins */
+        }
+
+    </style>
+</head>
+
+<body class="bg-gray-200 flex flex-col items-center min-h-screen relative"
+      data-firework-image="{{ url_for('static', filename='image/feuArtifice.png') }}">
+
+    <button class="home-button" onclick="window.location.href='/'">⌂</button>
+    <button id="reset-button" class="button-3d">Réinitialiser le jeu</button>
+
+    <div id="game-container" class="container mx-auto p-4 flex flex-row items-start">
+        <!-- Tableau de bord latéral pour les informations des joueurs -->
+        <div class="flex flex-col">
+            <aside class="w-64 card p-4 mb-4 sortable-item">
+                <h2 class="text-xl font-bold text-center mb-4">Joueurs & Scores</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 1"
+                             class="w-10 h-10 mr-2 joueur-img">
+                        <span id="player1Name">Joueur 1</span>
+                    </div>
+                    <span id="score1">0</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="{{ url_for('static', filename='image/stickers-bonhomme-de-neige-.jpg') }}" alt="Joueur 2"
+                             class="w-10 h-10 mr-2 joueur-img">
+                        <span id="player2Name">Joueur 2</span>
+                    </div>
+                    <span id="score2">0</span>
+                </div>
+            </aside>
+            <!-- Partie du choix de la difficulté -->
+            <aside class="w-64 card p-4 sortable-item">
+                <label for="difficulty-select" class="text-xl font-bold text-center mb-4">Taille Hexagone</label>
+                <select id="difficulty-select" class="block w-full bg-gray-100 border border-gray-300 rounded p-2">
+                    <option value="4">4x4</option>
+                    <option value="5">5x5</option>
+                    <option value="6">6x6</option>
+                    <option value="7" selected>7x7</option>
+                    <option value="8">8x8</option>
+                    <option value="9">9x9</option>
+                    <option value="10">10x10</option>
+                    <option value="11">11x11</option>
+                </select>
+            </aside>
+        </div>
+        <!-- Conteneur principal pour le jeu -->
+        <div class="flex-1 sortable-item">
+            <header id="game-header" class="bg-red-500 text-white text-center p-4 rounded-lg mb-4">
+                <h1 class="text-3xl font-bold">Hexagame</h1>
+                <div class="mt-2">
+                    <p id="current-player" class="text-lg">Joueur actuel : Joueur 1</p>
+                    <p id="winner-message" class="text-md"></p>
+                </div>
+            </header>
+            <main class="flex flex-col items-center">
+                <div id="hex-game-board" class="mt-4"></div>
+            </main>
+            <section
+                    class="p-4 bg-white rounded-lg shadow-lg mt-4 transition-transform duration-200 hover:scale-105 card sortable-item">
+                <h2 class="font-bold">Instructions</h2>
+                <p>Connectez vos côtés en couleurs avant votre adversaire.</p>
+            </section>
+        </div>
+    </div>
+    <!-- Inclure le footer -->
+    {% include 'footer.html' %}
+    <!-- Animation de fond en 3D -->
+    <div class="background-3d">
+        <div></div>
+        <div></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='js/alphaBeta.js') }}"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Script JavaScript pour afficher les noms des joueurs -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const player1NameElement = document.getElementById("player1Name");
+            const player2NameElement = document.getElementById("player2Name");
+            const player1Name = sessionStorage.getItem("player1Name") || "Joueur 1";
+            const player2Name = sessionStorage.getItem("player2Name") || "Joueur 2";
+
+            player1NameElement.textContent = player1Name;
+            player2NameElement.textContent = player2Name;
+        });
+
+        // Initialisation de SortableJS pour les éléments de la grille
+        const gridContainer = document.querySelector('#game-container');
+        new Sortable(gridContainer, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            chosenClass: 'sortable-chosen',
+            dragClass: 'sortable-drag',
+            onStart: function () {
+                console.log('Drag started');
+            },
+            onEnd: function () {
+                console.log('Drag ended');
+            }
+        });
+
+        console.log('SortableJS initialized');
+    </script>
+</body>
+</html>
