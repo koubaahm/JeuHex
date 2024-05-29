@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function() {
         1: [], // Moves of Player 1 (Red)
         2: []  // Moves of Player 2 (Blue)
     };
-    //const isAlphaBeta = false;
 
     // Fonction pour mettre à jour la taille du plateau en fonction du choix de difficulté
     function updateBoardSize() {
@@ -234,10 +233,96 @@ document.addEventListener("DOMContentLoaded", function() {
                 currentPlayer = currentPlayer === 1 ? 2 : 1;
                 updateCurrentPlayerDisplay();
             }
-            if (currentPlayer === 2 && numberPlayers=== 1) {
+            if (currentPlayer === 2 && numberPlayers === 1) {
                 setTimeout(makeAiMove, 500);
             }
         }
+    }
+
+    function shortestPathToVictory(player) {
+        const directions = [
+            [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]
+        ];
+        let queue = [];
+        let visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        let connectedToEnd = false;
+
+        // Initialize the queue with the player's moves
+        for (const [r, c] of playerMoves[player]) {
+            queue.push([r, c, 0]); // Initialize with distance 0
+            visited[r][c] = true;
+        }
+
+        // Perform BFS
+        while (queue.length > 0) {
+            const [r, c, dist] = queue.shift();
+
+            // Check if we've reached the target
+            if ((player === 1 && r === rows - 1) || (player === 2 && c === cols - 1)) {
+                connectedToEnd = true;
+            }
+            if ((player === 1 && r === 0 && connectedToEnd) || (player === 2 && c === 0 && connectedToEnd)) {
+                return dist;
+            }
+
+            // Explore neighbors
+            for (const [dr, dc] of directions) {
+                const nr = r + dr;
+                const nc = c + dc;
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {
+                    if (gameBoard[nr][nc] === 0) {
+                        queue.push([nr, nc, dist + 1]); // distance 1
+                    } else if (gameBoard[nr][nc] === player) {
+                        queue.push([nr, nc, dist]); // distance 0
+                    }
+                    visited[nr][nc] = true;
+                }
+            }
+        }
+        return -1; // No path found
+    }
+
+
+    function connectedParts(player) {
+        const directions = [
+            [-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]
+        ];
+        let visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+        let connectedParts = [];
+
+        // Helper function to perform BFS from a given start position
+        function bfs(r, c) {
+            let queue = [[r, c]];
+            let component = [];
+            visited[r][c] = true;
+            component.push({ r, c });
+
+            while (queue.length > 0) {
+                const [cr, cc] = queue.shift();
+                for (const [dr, dc] of directions) {
+                    const nr = cr + dr;
+                    const nc = cc + dc;
+                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc] && gameBoard[nr][nc] === player) {
+                        queue.push([nr, nc]);
+                        visited[nr][nc] = true;
+                        component.push({ r: nr, c: nc });
+                    }
+                }
+            }
+            return component;
+        }
+
+        // Iterate over all player moves to find connected components
+        for (const [r, c] of playerMoves[player]) {
+            if (!visited[r][c] && gameBoard[r][c] === player) {
+                const component = bfs(r, c);
+                if (component.length > 0) {
+                    connectedParts.push(component);
+                }
+            }
+        }
+
+        return connectedParts; // Return all connected components
     }
 
     //case capturé
@@ -285,6 +370,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }*/
 
     }
+
     //un mouvement qui capture une chaine
     function isDirectionalCapturingMove(row, col, opponent) {
         // Check if this move captures the opponent by blocking both relevant paths
@@ -405,6 +491,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return !stillWin; // Critical if blocking this move prevents the win
     }
 
+    //Evaluation d'une case
     function evaluateMove(row, col, player) {
         if (gameBoard[row][col] !== 0) return -Infinity; // Already occupied tiles should not be evaluated
 
@@ -414,7 +501,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Initial preference for center control
         const centerRow = Math.floor(rows / 2);
         const centerCol = Math.floor(cols / 2);
-        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol);
+        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol); // make it with 0.
         score -= distanceToCenter; // Closer to the center is better
 
         // Check for winning move
@@ -427,13 +514,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Evaluate the shortest path to victory for the current player
         const opponent = player === 1 ? 2 : 1;
-        const playerPathBefore = greedyShortestPathToVictory(player);
-        const opponentPathBefore = greedyShortestPathToVictory(opponent);
+        const playerPathBefore = shortestPathToVictory(player);
+        const opponentPathBefore = shortestPathToVictory(opponent);
 
         gameBoard[row][col] = player; // Temporarily make the move
         playerMoves[player].push([row, col]);
-        const playerPathAfter = greedyShortestPathToVictory(player);
-        const opponentPathAfter = greedyShortestPathToVictory(opponent);
+        const playerPathAfter = shortestPathToVictory(player);
+        const opponentPathAfter = shortestPathToVictory(opponent);
         gameBoard[row][col] = 0; // Undo the move
         playerMoves[player].pop();
 
@@ -488,8 +575,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return { score, logDetails };
     }
 
-    //evaluation d'un mouvement
-    function evaluateMoveAlphaBeta(row, col, player, depth = 3, alpha = -Infinity, beta = Infinity, isMaximizingPlayer = true) {
+    //Algorithme Alphabeta
+    function alphaBeta(row, col, player, depth = 3, alpha = -Infinity, beta = Infinity, isMaximizingPlayer = true) {
         let { score, logDetails } = evaluateMove(row, col, player);
 
         const opponent = player === 1 ? 2 : 1;
@@ -497,7 +584,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // If depth is greater than 1, simulate opponent's move
         if (depth > 1) {
             let opponentBestScore = -Infinity;
-            gameBoard[row][col] = player; // Temporarily make the move for the current player
+            gameBoard[row][col] = player;
             const opponentMoves = [];
             for (let r = 0; r < rows; r++) {
                 for (let c = 0; c < cols; c++) {
@@ -509,7 +596,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             for (let move of opponentMoves) {
                 const { r, c } = move;
-                const opponentScore = evaluateMoveAlphaBeta(r, c, opponent, depth - 1, alpha, beta, !isMaximizingPlayer);
+                const opponentScore = alphaBeta(r, c, opponent, depth - 1, alpha, beta, !isMaximizingPlayer);
                 if (opponentScore > opponentBestScore) {
                     opponentBestScore = opponentScore;
                 }
@@ -529,7 +616,8 @@ document.addEventListener("DOMContentLoaded", function() {
         return score;
     }
 
-    function evaluateMoveSSSstar(row, col, player, depth = 3) {
+    //Algorithme SSS*
+    function SSSstar(row, col, player, depth = 3) {
         let { score, logDetails } = evaluateMove(row, col, player);
 
         const opponent = player === 1 ? 2 : 1;
@@ -549,7 +637,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             for (let move of opponentMoves) {
                 const { r, c } = move;
-                const opponentScore = evaluateMoveSSSstar(r, c, opponent, depth - 1);
+                const opponentScore = SSSstar(r, c, opponent, depth - 1);
                 if (opponentScore > opponentBestScore) {
                     opponentBestScore = opponentScore;
                 }
@@ -563,115 +651,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return score;
     }
 
-
-
-    function evaluateMoveSSSstar(row, col, player, depth = 3) {
-        if (gameBoard[row][col] !== 0) return -Infinity; // Already occupied tiles should not be evaluated
-
-        let score = 0;
-        let logDetails = [];
-
-        // Initial preference for center control
-        const centerRow = Math.floor(rows / 2);
-        const centerCol = Math.floor(cols / 2);
-        const distanceToCenter = Math.abs(row - centerRow) + Math.abs(col - centerCol);
-        score -= distanceToCenter; // Closer to the center is better
-
-        // Check for winning move
-        gameBoard[row][col] = player; // Temporarily make the move
-        if (checkWin(player)) {
-            score += 100; // High score for a winning move
-            logDetails.push('Winning Move');
-        }
-        gameBoard[row][col] = 0; // Undo the move
-
-        // Evaluate the shortest path to victory for the current player
-        const opponent = player === 1 ? 2 : 1;
-        const playerPathBefore = greedyShortestPathToVictory(player);
-        const opponentPathBefore = greedyShortestPathToVictory(opponent);
-
-        gameBoard[row][col] = player; // Temporarily make the move
-        playerMoves[player].push([row, col]);
-        const playerPathAfter = greedyShortestPathToVictory(player);
-        const opponentPathAfter = greedyShortestPathToVictory(opponent);
-        gameBoard[row][col] = 0; // Undo the move
-        playerMoves[player].pop();
-
-        const playerPathDelta = (playerPathBefore === -1) ? 0 : playerPathBefore - playerPathAfter;
-        const opponentPathDelta = (opponentPathBefore === -1) ? 0 : opponentPathBefore - opponentPathAfter;
-        score += playerPathDelta * 5; // Shorten our path to victory
-        score -= opponentPathDelta * 5; // Lengthen opponent's path to victory
-
-        logDetails.push(`Shortest Path to Victory: ${playerPathAfter}, Opponent Path: ${opponentPathAfter}`);
-
-        // Blocking opponent's critical path
-        gameBoard[row][col] = opponent; // Temporarily make the move for opponent
-        if (checkWin(opponent)) {
-            score += 90; // High score for blocking opponent's winning move
-            logDetails.push('Blocking Opponent Winning Move');
-        }
-        gameBoard[row][col] = 0; // Undo the move
-
-        // Emphasize blocking critical paths and capturing
-        if (isCriticalBlock(row, col, opponent)) {
-            score += 80; // Emphasize blocking critical paths
-            logDetails.push('Critical Block');
-        }
-        if (isDirectionalCapturingMove(row, col, opponent)) {
-            score += 85; // High score for directional capturing moves
-            logDetails.push('Directional Capture');
-        }
-        if (isCapturedTile(row, col, player)) {
-            score -= 80;
-            logDetails.push('Captured tile');
-        }
-        // Potential bridges and strategic positions for player
-        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, 1], [1, -1]];
-        for (let [dr, dc] of directions) {
-            const nr = row + dr;
-            const nc = col + dc;
-            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
-                if (gameBoard[nr][nc] === player) {
-                    score += 7; // Lower score for creating bridges or connecting pieces
-                } else if (gameBoard[nr][nc] === opponent) {
-                    // Block opponent's strategic position
-                    const furtherNr = nr + dr;
-                    const furtherNc = nc + dc;
-                    if (furtherNr >= 0 && furtherNr < rows && furtherNc >= 0 && furtherNc < cols && gameBoard[furtherNr][furtherNc] === opponent) {
-                        score += 10; // Reward for blocking potential bridges
-                    }
-                }
-            }
-        }
-
-        // If depth is greater than 1, simulate opponent's move
-        if (depth > 1) {
-            let opponentBestScore = -Infinity;
-            gameBoard[row][col] = player; // Temporarily make the move for the current player
-            const opponentMoves = [];
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (gameBoard[r][c] === 0) {
-                        opponentMoves.push({ r, c });
-                    }
-                }
-            }
-
-            for (let move of opponentMoves) {
-                const { r, c } = move;
-                const opponentScore = evaluateMoveSSSstar(r, c, opponent, depth - 1);
-                if (opponentScore > opponentBestScore) {
-                    opponentBestScore = opponentScore;
-                }
-            }
-            score -= opponentBestScore; // Subtract the opponent's best score to simulate blocking
-            gameBoard[row][col] = 0; // Undo the current player's move
-        }
-
-        console.log(`Tile (${row}, ${col}): Score = ${score}, Details: ${logDetails.join(', ')}`);
-
-        return score;
-    }
 
 
     //plus court chemin glouton
@@ -767,9 +746,9 @@ document.addEventListener("DOMContentLoaded", function() {
             const { r, c } = move;
             let score;
             if (isAlphaBeta) {
-                score = evaluateMoveAlphaBeta(r, c, currentPlayer, 2, -Infinity, Infinity, true);
+                score = alphaBeta(r, c, currentPlayer, 2, -Infinity, Infinity, true);
             } else {
-                score = evaluateMoveSSSstar(r, c, currentPlayer, 2);
+                score = SSSstar(r, c, currentPlayer, 2);
             }
             if (!evaluationBoard[r]) {
                 evaluationBoard[r] = [];
@@ -873,136 +852,9 @@ document.addEventListener("DOMContentLoaded", function() {
         return Infinity;
     }
 
-    //evalue si il ya un bridge (connection entre 2 cases avec vide)
-    function evaluateBridgePotential(r, c, player) {
-        const neighbours = getNeighbours(r, c);
-        let bridgePotential = 0;
 
-        for (let [nr, nc] of neighbours) {
-            if (gameBoard[nr][nc] === player) {
-                for (let [br, bc] of getNeighbours(nr, nc)) {
-                    if (gameBoard[br][bc] === 0 && (br !== r || bc !== c)) {
-                        bridgePotential++;
-                    }
-                }
-            }
-        }
 
-        return bridgePotential;
-    }
 
-    // Evalue la partie
-    function evaluateBoard() {
-        const boardStr = piecesString();
-        if (visited.has(boardStr)) return visited.get(boardStr);
-
-        let redPotential = Infinity;
-        let bluePotential = Infinity;
-        let redMobility = 0;
-        let blueMobility = 0;
-        let redBridgePotential = 0;
-        let blueBridgePotential = 0;
-        let redBlockPotential = 0;
-        let blueBlockPotential = 0;
-        let player2WinningThreat = false;
-
-        if (canWinInOneMove(2)) {
-            return 20; // Immediate win
-        }
-        if (canWinInOneMove(1)) {
-            player2WinningThreat = true;
-        }
-
-        let bestScore = 0;
-        for (let i = 0; i < rows; i++) {
-            for (let j = 0; j < cols; j++) {
-                if (gameBoard[i][j] === 0) {
-
-                    const redNeighbours = getNeighbours(i, j).filter(([nr, nc]) => gameBoard[nr][nc] === 1);
-                    const blueNeighbours = getNeighbours(i, j).filter(([nr, nc]) => gameBoard[nr][nc] === 2);
-
-                    if (redNeighbours.length > 0  && !isCapturedTile(i, j, 1)) {
-                        const redDist = distanceToGoal(i, j, 1);
-                        if (redDist < redPotential) {
-                            redPotential = redDist;
-                            redMobility = 1;
-                        } else if (redDist === redPotential) {
-                            redMobility++;
-                        }
-                        const redBridge = evaluateBridgePotential(i, j, 1);
-                        redBridgePotential += redBridge;
-                        redBlockPotential += redNeighbours.length;
-                    }
-
-                    if (blueNeighbours.length > 0 && !isDeadTile(i, j, 2) && !isCapturedTile(i, j, 2)) {
-                        const blueDist = distanceToGoal(i, j, 2);
-                        if (blueDist < bluePotential) {
-                            bluePotential = blueDist;
-                            blueMobility = 1;
-                        } else if (blueDist === bluePotential) {
-                            blueMobility++;
-                        }
-                        const blueBridge = evaluateBridgePotential(i, j, 2);
-                        blueBridgePotential += blueBridge;
-                        blueBlockPotential += blueNeighbours.length;
-                    }
-                    let captured = isCapturedTile(i,j,currentPlayer)  ? -100 : 0;
-                    let moveScore =
-                        (captured) + // Capture Punish
-                        (bluePotential - redPotential) + // Potential difference
-                        (blueMobility - redMobility) + // Mobility difference
-                        (blueBridgePotential * 2 - redBridgePotential * 2) + // Bridge potential (multiplicative factor)
-                        (redBlockPotential * 3 - blueBlockPotential * 3); // Block potential (multiplicative factor)
-
-                    // Penalize non-strategic side tiles
-                    if ((i === 0 || i === rows - 1 || j === 0 || j === cols - 1) && moveScore < 19) {
-                        moveScore -= 5;
-                    }
-
-                    if (player2WinningThreat) {
-                        moveScore += 5; // Prioritize blocking a winning chain
-                    }
-
-                    if (blueNeighbours.length > 0) {
-                        moveScore += 10; // Reward for extending path
-                    }
-
-                    bestScore = Math.max(bestScore, moveScore);
-                }
-            }
-        }
-
-        // Normalize the potential values
-        redPotential = redPotential === Infinity ? 0 : 1 / (redPotential + 1);
-        bluePotential = bluePotential === Infinity ? 0 : 1 / (bluePotential + 1);
-
-        // Normalize bridge and block potentials
-        const maxBridgePotential = Math.max(redBridgePotential, blueBridgePotential);
-        const maxBlockPotential = Math.max(redBlockPotential, blueBlockPotential);
-
-        if (maxBridgePotential > 0) {
-            redBridgePotential /= maxBridgePotential;
-            blueBridgePotential /= maxBridgePotential;
-        }
-
-        if (maxBlockPotential > 0) {
-            redBlockPotential /= maxBlockPotential;
-            blueBlockPotential /= maxBlockPotential;
-        }
-
-        let boardValue =
-            (bluePotential - redPotential) + // Potential difference
-            (blueMobility - redMobility) + // Mobility difference
-            (blueBridgePotential * 2 - redBridgePotential * 2) + // Bridge potential (multiplicative factor)
-            (redBlockPotential * 3 - blueBlockPotential * 3); // Block potential (multiplicative factor)
-
-        if (player2WinningThreat) {
-            boardValue += 5; // Prioritize blocking a winning chain
-        }
-
-        visited.set(boardStr, boardValue);
-        return boardValue;
-    }
 
     updateCurrentPlayerDisplay();
     initializeBoard();
